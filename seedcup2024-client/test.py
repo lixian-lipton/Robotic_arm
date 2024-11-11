@@ -38,5 +38,5 @@ def main(algorithm):
 
 if __name__ == "__main__":
     algorithm = PPOAlgorithm()
-    #algorithm = MyCustomAlgorithm()
+    # algorithm = MyCustomAlgorithm()
     main(algorithm)

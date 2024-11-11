@@ -2,7 +2,6 @@ import os
 import numpy as np
 from stable_baselines3 import PPO
 from abc import ABC, abstractmethod
-from arm_moving import moving
 
 class BaseAlgorithm(ABC):
     @abstractmethod 
@@ -17,7 +16,7 @@ class BaseAlgorithm(ABC):
         Returns:
             action: numpy array of shape (6,) 范围在[-1,1]之间
         """
-        return moving(observation)
+        pass
 
 class MyCustomAlgorithm(BaseAlgorithm):
     def __init__(self):
