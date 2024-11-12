@@ -172,14 +172,16 @@ class PPOTrainer:
         # 创建环境
         self.env = MyRobotEnv()        #remember to adjust the gui
         # 创建 PPO 模型
-        # TODO: 根据需要配置模型参数
-        self.model = PPO("MlpPolicy", self.env, verbose=1)
+        model_path = "D:\Desktop\Directory\Robotic_arm\seedcup2024-client\model.zip"
+        model = PPO("MlpPolicy", self.env, verbose=1)
+        model = model.load(model_path, self.env, device="cuda")  # 加载预训练模型
+        self.model = model
+        print("加载预训练模型成功！")
 
     def train(self, total_timesteps):
         # 开始训练模型
         print("开始训练...")
-        self.model.load("D:\Desktop\Directory\Robotic_arm\seedcup2024-client\model.zip", device="cuda") # 加载预训练模型
-        print("加载预训练模型成功！")
+
         self.model.learn(total_timesteps=total_timesteps)
         print("训练完成！")
 
@@ -192,9 +194,9 @@ class PPOTrainer:
 if __name__ == "__main__":
     # 创建训练器实例
     trainer = PPOTrainer()
-    # 训练模型
-    total_timesteps = 1
+    total_timesteps = 3
     for _ in tqdm(range(total_timesteps)):
+        # 训练模型
         trainer.train(total_timesteps=100)
-    # 保存模型
+        # 保存模型
     trainer.save_model("D:\Desktop\Directory\Robotic_arm\seedcup2024-client\model.zip")
