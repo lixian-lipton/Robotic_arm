@@ -1,6 +1,7 @@
 import os
 import math
 import numpy as np
+from tqdm import tqdm
 import gymnasium as gym
 from gymnasium import spaces
 from stable_baselines3 import PPO
@@ -79,6 +80,7 @@ class MyRobotEnv(gym.Env):
         # 进行一定数量的仿真步进以稳定环境
         for _ in range(100):
             self.p.stepSimulation()
+        self.distance = self.get_dis()  # 计算夹爪中心与目标之间的距离
         return self.get_observation(), {}  # 返回初始观测值
 
     def get_observation(self):
@@ -131,28 +133,33 @@ class MyRobotEnv(gym.Env):
             link_index = contact_point[3]  # 获取接触的链接索引
             if link_index not in [0, 1]:  # 如果不是底盘或底座
                 self.obstacle_contact = True  # 标记为接触状态
+
+        distance = self.get_dis()  # 计算当前距离
+        self.success_reward += 150 * (self.distance - distance)  # 根据距离变化计算奖励
+        self.distance = distance
+
         # 计算奖励
         if self.get_dis() < 0.05 and self.step_num <= self.max_steps:  # 如果距离目标很近
-            self.success_reward = 100  # 成功奖励
+            self.success_reward += 100  # 成功奖励
             if self.obstacle_contact:  # 如果接触了障碍物
                 if self.is_senior:
-                    self.success_reward = 20  # 高级模式的奖励
+                    self.success_reward -= 50  # 高级模式的奖励
                 elif not self.is_senior:
-                    self.success_reward = 50  # 非高级模式的奖励
+                    self.success_reward -= 50   # 非高级模式的奖励
                 else:
                     return  # 不执行任何操作
             self.terminated = True  # 设置为结束状态
         elif self.step_num >= self.max_steps:  # 如果达到最大步骤数
             distance = self.get_dis()  # 计算当前距离
             if 0.05 <= distance <= 0.2:  # 如果在特定范围内
-                self.success_reward = 100 * (1 - ((distance - 0.05) / 0.15))  # 根据距离计算奖励
+                self.success_reward += 100 * (1 - ((distance - 0.05) / 0.15))  # 根据距离计算奖励
             else:
-                self.success_reward = 0  # 超出范围，奖励为零
+                self.success_reward -= distance  # 超出范围，奖励为零
             if self.obstacle_contact:  # 如果接触了障碍物
                 if self.is_senior:
-                    self.success_reward *= 0.2  # 高级模式的惩罚
+                    self.success_reward -= 50  # 高级模式的惩罚
                 elif not self.is_senior:
-                    self.success_reward *= 0.5  # 非高级模式的惩罚
+                    self.success_reward -= 50  # 非高级模式的惩罚
             self.terminated = True  # 设置为结束状态
 
     def close(self):
@@ -171,15 +178,13 @@ class PPOTrainer:
     def train(self, total_timesteps):
         # 开始训练模型
         print("开始训练...")
-        model_path = os.path.join(os.path.dirname(__file__), "model.zip")
-        self.model.load(model_path, device="cuda") # 加载预训练模型
+        self.model.load("D:\Desktop\Directory\Robotic_arm\seedcup2024-client\model.zip", device="cuda") # 加载预训练模型
         print("加载预训练模型成功！")
         self.model.learn(total_timesteps=total_timesteps)
         print("训练完成！")
 
-    def save_model(self, file_name):
+    def save_model(self, model_path):
         # 保存训练好的模型
-        model_path = os.path.join(os.path.dirname(__file__), "model.zip")
         self.model.save(model_path)
         print(f"模型保存至 {model_path}")
 
@@ -188,6 +193,8 @@ if __name__ == "__main__":
     # 创建训练器实例
     trainer = PPOTrainer()
     # 训练模型
-    trainer.train(total_timesteps=10000)  # TODO: 根据需要调整总时间步数
+    total_timesteps = 1
+    for _ in tqdm(range(total_timesteps)):
+        trainer.train(total_timesteps=100)
     # 保存模型
-    trainer.save_model("model.zip")  # TODO: 根据需要调整文件名
+    trainer.save_model("D:\Desktop\Directory\Robotic_arm\seedcup2024-client\model.zip")

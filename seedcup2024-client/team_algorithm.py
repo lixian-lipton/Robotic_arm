@@ -36,6 +36,7 @@ class PPOAlgorithm(BaseAlgorithm):
 
     def get_action(self, observation):
         action, _ = self.model.predict(observation)
+        action = action.flatten()
         return action
     
 

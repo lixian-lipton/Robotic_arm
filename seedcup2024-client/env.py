@@ -8,7 +8,7 @@ from scipy.spatial.transform import Rotation as R
 
 
 class Env:
-    def __init__(self, is_senior, seed=114514, gui=False):
+    def __init__(self, is_senior, seed=100, gui=False):
         """
         初始化环境
 
