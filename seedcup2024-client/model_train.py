@@ -226,7 +226,7 @@ class PPOTrainer:
 if __name__ == "__main__":
     # 创建训练器实例
     trainer = PPOTrainer()
-    total_timesteps = 100
+    total_timesteps = 50
     for _ in tqdm(range(total_timesteps)):
         # 训练模型
         trainer.train(total_timesteps=100)

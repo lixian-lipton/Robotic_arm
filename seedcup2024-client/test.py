@@ -6,7 +6,7 @@ import self_solving
 from robot_arm import Forward_solving
 
 choose_model = 0
-test = 1
+test = 0
 
 def main(algorithm):
     env = Env(is_senior=False,seed=100,gui=test)
