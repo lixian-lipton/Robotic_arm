@@ -1,6 +1,8 @@
 import os
 import numpy as np
+
 from stable_baselines3 import PPO
+from self_solving import MyMethod
 from abc import ABC, abstractmethod
 
 class BaseAlgorithm(ABC):
@@ -25,7 +27,8 @@ class MyCustomAlgorithm(BaseAlgorithm):
         
     def get_action(self, observation):
         # 输入观测值，返回动作
-        action = np.random.uniform(-1, 1, 6)
+        observation = observation.flatten()
+        action = MyMethod(observation)
         return action
 
 # 示例：使用PPO预训练模型

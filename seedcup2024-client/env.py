@@ -124,6 +124,15 @@ class Env:
         target_position = np.array(self.p.getBasePositionAndOrientation(self.target)[0])  # 获取目标位置
         return np.linalg.norm(gripper_centre_pos - target_position)  # 返回距离
 
+    def get_gripper_pos(self):
+        """计算夹爪中心与目标之间的距离"""
+        gripper_pos = self.p.getLinkState(self.fr5, 6)[0]  # 获取夹爪位置
+        relative_position = np.array([0, 0, 0.15])  # 定义相对位置
+        rotation = R.from_quat(self.p.getLinkState(self.fr5, 7)[1])  # 获取夹爪的旋转状态
+        rotated_relative_position = rotation.apply(relative_position)  # 应用旋转
+        gripper_centre_pos = np.array(gripper_pos) + rotated_relative_position  # 计算夹爪中心位置
+        return gripper_centre_pos
+
     def reward(self):
         """计算当前奖励并检查接触状态"""
         # 获取与桌子和障碍物的接触点

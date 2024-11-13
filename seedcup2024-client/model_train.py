@@ -2,6 +2,7 @@ import os
 import math
 import numpy as np
 from tqdm import tqdm
+from time import sleep
 import gymnasium as gym
 from gymnasium import spaces
 from stable_baselines3 import PPO
@@ -99,6 +100,7 @@ class MyRobotEnv(gym.Env):
     def step(self, action):
         """执行指定动作并返回新的状态、奖励和结束标志"""
         self.step_num += 1  # 增加步骤计数
+        self.action = action  # 保存动作
         # 获取当前关节角度
         joint_angles = [self.p.getJointState(self.fr5, i)[0] for i in range(1, 7)]
         action = np.clip(action, -1, 1)  # 限制动作范围
@@ -124,6 +126,25 @@ class MyRobotEnv(gym.Env):
         target_position = np.array(self.p.getBasePositionAndOrientation(self.target)[0])  # 获取目标位置
         return np.linalg.norm(gripper_centre_pos - target_position)  # 返回距离
 
+    def get_dis_obstacle(self):
+        """计算夹爪中心与目标之间的距离"""
+        gripper_pos = self.p.getLinkState(self.fr5, 6)[0]  # 获取夹爪位置
+        relative_position = np.array([0, 0, 0.15])  # 定义相对位置
+        rotation = R.from_quat(self.p.getLinkState(self.fr5, 7)[1])  # 获取夹爪的旋转状态
+        rotated_relative_position = rotation.apply(relative_position)  # 应用旋转
+        gripper_centre_pos = np.array(gripper_pos) + rotated_relative_position  # 计算夹爪中心位置
+        obstacle_position = np.array(self.p.getBasePositionAndOrientation(self.obstacle1)[0])  # 获取目标位置
+        return np.linalg.norm(gripper_centre_pos - obstacle_position)  # 返回距离
+
+    def get_centre_pos(self):
+        """计算夹爪中心位置"""
+        gripper_pos = self.p.getLinkState(self.fr5, 6)[0]  # 获取夹爪位置
+        relative_position = np.array([0, 0, 0.15])  # 定义相对位置
+        rotation = R.from_quat(self.p.getLinkState(self.fr5, 7)[1])  # 获取夹爪的旋转状态
+        rotated_relative_position = rotation.apply(relative_position)  # 应用旋转
+        gripper_centre_pos = np.array(gripper_pos) + rotated_relative_position  # 计算夹爪中心位置
+        return gripper_centre_pos
+
     def reward(self):
         """计算当前奖励并检查接触状态"""
         # 获取与桌子和障碍物的接触点
@@ -135,7 +156,18 @@ class MyRobotEnv(gym.Env):
                 self.obstacle_contact = True  # 标记为接触状态
 
         distance = self.get_dis()  # 计算当前距离
-        self.success_reward += 150 * (self.distance - distance)  # 根据距离变化计算奖励
+        self.success_reward -= 0.1
+        self.success_reward += (self.distance - distance) * 500
+        if self.get_centre_pos()[1] > 0.7:
+            self.success_reward += (self.distance - distance) * 500
+            self.success_reward += self.action[4] * 3 + self.action[5]
+        # self.success_reward -= self.get_dis_obstacle() * 60
+        # self.success_reward += 1000 * (1 / (1 + math.exp(5 * (distance - self.distance) ) ) - 1 / 2)  # 根据距离变化计算奖励
+        # self.success_reward -= 0.1  # 惩罚
+        if self.get_dis_obstacle() < 0.005:
+             self.success_reward -= 80 * (0.005 - self.get_dis_obstacle())  # 障碍距离惩罚
+        #print(self.distance - distance)##############################################################################
+        # print(-100 / (1 + math.exp(10 * self.get_dis_obstacle())))##############################################################################
         self.distance = distance
 
         # 计算奖励
@@ -145,7 +177,7 @@ class MyRobotEnv(gym.Env):
                 if self.is_senior:
                     self.success_reward -= 50  # 高级模式的奖励
                 elif not self.is_senior:
-                    self.success_reward -= 50   # 非高级模式的奖励
+                    self.success_reward -= 80   # 非高级模式的奖励
                 else:
                     return  # 不执行任何操作
             self.terminated = True  # 设置为结束状态
@@ -159,7 +191,7 @@ class MyRobotEnv(gym.Env):
                 if self.is_senior:
                     self.success_reward -= 50  # 高级模式的惩罚
                 elif not self.is_senior:
-                    self.success_reward -= 50  # 非高级模式的惩罚
+                    self.success_reward -= 80  # 非高级模式的惩罚
             self.terminated = True  # 设置为结束状态
 
     def close(self):
@@ -194,7 +226,7 @@ class PPOTrainer:
 if __name__ == "__main__":
     # 创建训练器实例
     trainer = PPOTrainer()
-    total_timesteps = 3
+    total_timesteps = 100
     for _ in tqdm(range(total_timesteps)):
         # 训练模型
         trainer.train(total_timesteps=100)

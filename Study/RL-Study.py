@@ -1,73 +1,95 @@
-import gym
-from gym import spaces
-import numpy as np
+scores = [
+    100,
+    10.178918508280345,
+    4.6069506668985705,
+    9.904409298420113,
+    20,
+    5.778879041727483,
+    7.7005079642017,
+    12.758544774509843,
+    20,
+    3.149169287666025,
+    20,
+    3.691949766672267,
+    1.3724589890079189,
+    8.39590101625112,
+    7.0989212377750155,
+    20,
+    3.1257695484089414,
+    0.0,
+    0.0,
+    3.904259151246865,
+    3.928851890708043,
+    0.0,
+    0.0,
+    20,
+    2.133583201962481,
+    4.949672727993524,
+    0.0,
+    7.538127518123329,
+    8.889604978475829,
+    0.0,
+    0.849965351216726,
+    9.355034334557576,
+    20,
+    20,
+    1.363335556716583,
+    9.584159078374098,
+    18.727307923654323,
+    7.014398838872211,
+    0.0,
+    20,
+    8.96648901904349,
+    17.237858675893253,
+    10.092104952636648,
+    10.30170540987299,
+    6.644947557015186,
+    11.891354816884558,
+    12.60541979923187,
+    20,
+    0.0,
+    11.949115200685334,
+    2.9010646666004685,
+    20,
+    0.8624287009595278,
+    9.106020331605642,
+    0.0,
+    0.0,
+    0.0,
+    0.47084409912782066,
+    7.789254886504766,
+    0.0,
+    0.0,
+    0.0,
+    20,
+    0.1297935900342706,
+    0.0,
+    10.500569292641027,
+    6.9688779750226875,
+    0.0,
+    0.0,
+    9.861916748804648,
+    0.0,
+    0.0,
+    100,
+    0.0,
+    13.453448849495771,
+    1.4058272551637943,
+    8.863739482261755,
+    11.557193313213816,
+    0.0,
+    0.0,
+    0.0,
+    20,
+    2.2864811096053383,
+    0.0,
+    0.0,
+    5.022186815087846,
+    10.74082742231814,
+    5.794374285391604
+]
 
-
-class Car2DEnv(gym.Env):
-    metadata = {
-        'render.modes': ['human', 'rgb_array'],
-        'video.frames_per_second': 2
-    }
-
-    def __init__(self):
-        self.xth = 0
-        self.target_x = 0
-        self.target_y = 0
-        self.L = 10
-        self.action_space = spaces.Discrete(5)  # 0, 1, 2，3，4: 不动，上下左右
-        self.observation_space = spaces.Box(np.array([-self.L, -self.L]), np.array([self.L, self.L]))
-        self.state = None
-
-    def step(self, action):
-        assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
-        x, y = self.state
-        if action == 0:
-            x = x
-            y = y
-        if action == 1:
-            x = x
-            y = y + 1
-        if action == 2:
-            x = x
-            y = y - 1
-        if action == 3:
-            x = x - 1
-            y = y
-        if action == 4:
-            x = x + 1
-            y = y
-        self.state = np.array([x, y])
-        self.counts += 1
-
-        done = (np.abs(x) + np.abs(y) <= 1) or (np.abs(x) + np.abs(y) >= 2 * self.L + 1)
-        done = bool(done)
-
-        if not done:
-            reward = -0.1
-        else:
-            if np.abs(x) + np.abs(y) <= 1:
-                reward = 10
-            else:
-                reward = -50
-
-        return self.state, reward, done, {}
-
-    def reset(self):
-        self.state = np.ceil(np.random.rand(2) * 2 * self.L) - self.L
-        self.counts = 0
-        return self.state
-
-    def render(self, mode='human'):
-        return None
-
-    def close(self):
-        return None
-
-
-if __name__ == '__main__':
-    env = Car2DEnv()
-    env.reset()
-    env.step(env.action_space.sample())
-    print(env.state)
-    env.step(env.action_space.sample())
-    print(env.state)
+sum = 0
+for score in scores:
+    sum += score
+print(sum)
