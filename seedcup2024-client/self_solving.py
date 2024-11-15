@@ -11,13 +11,13 @@ def MyMethod(observation):
     target_position = observation[6:9]
     obstacle_position = observation[9:]
     ini_robot = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    action = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    action = np.array([0.0, 0.0, 0.0, 0.0, -1.0, 0.0])
 
-    gripper_position = get_gripper_pos(ini_robot, observation)
-    if target_position[0] > gripper_position[0]:
-        action[0] = -1
-    else:
-        action[0] = 1
+    # gripper_position = get_gripper_pos(ini_robot, observation)
+    # if target_position[0] > gripper_position[0]:
+    #     action[0] = -1
+    # else:
+    #     action[0] = 1
 
     return action
     # 右 左 上 上 顺 逆

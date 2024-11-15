@@ -10,9 +10,14 @@ import pybullet as p
 import pybullet_data
 from pybullet_utils import bullet_client
 from scipy.spatial.transform import Rotation as R
+import random
+
+
+
+test = 0 # 启动测试模式
 
 class MyRobotEnv(gym.Env):
-    def __init__(self, is_senior=False, gui=False):
+    def __init__(self, is_senior=False, gui=test):
         """
                 初始化环境
                 参数:
@@ -155,20 +160,21 @@ class MyRobotEnv(gym.Env):
             if link_index not in [0, 1]:  # 如果不是底盘或底座
                 self.obstacle_contact = True  # 标记为接触状态
 
+
+                self.success_reward -= 3 # 惩罚接触
         distance = self.get_dis()  # 计算当前距离
         self.success_reward -= 0.1
-        self.success_reward += (self.distance - distance) * 500
-        if self.get_centre_pos()[1] > 0.7:
-            self.success_reward += (self.distance - distance) * 500
-            self.success_reward += self.action[4] * 3 + self.action[5]
-        # self.success_reward -= self.get_dis_obstacle() * 60
-        # self.success_reward += 1000 * (1 / (1 + math.exp(5 * (distance - self.distance) ) ) - 1 / 2)  # 根据距离变化计算奖励
-        # self.success_reward -= 0.1  # 惩罚
-        if self.get_dis_obstacle() < 0.005:
-             self.success_reward -= 80 * (0.005 - self.get_dis_obstacle())  # 障碍距离惩罚
-        #print(self.distance - distance)##############################################################################
-        # print(-100 / (1 + math.exp(10 * self.get_dis_obstacle())))##############################################################################
-        self.distance = distance
+        self.success_reward += (self.distance - distance) * 1000 # 奖励向目标移动
+        if self.get_centre_pos()[1] > 0.7: # 离目标较近时，加强奖励
+            self.success_reward += (self.distance - distance) * 1000
+        self.distance = distance # 更新距离
+        # self.success_reward -= self.action[4] # 我也不知道什么原因，但它干嘛老是往左偏？
+
+        if test:
+            """测试代码"""
+            sleep(0.5)
+            print("Step:", self.step_num, self.success_reward)
+
 
         # 计算奖励
         if self.get_dis() < 0.05 and self.step_num <= self.max_steps:  # 如果距离目标很近
@@ -177,7 +183,7 @@ class MyRobotEnv(gym.Env):
                 if self.is_senior:
                     self.success_reward -= 50  # 高级模式的奖励
                 elif not self.is_senior:
-                    self.success_reward -= 80   # 非高级模式的奖励
+                    self.success_reward -= 50   # 非高级模式的奖励
                 else:
                     return  # 不执行任何操作
             self.terminated = True  # 设置为结束状态
@@ -191,7 +197,7 @@ class MyRobotEnv(gym.Env):
                 if self.is_senior:
                     self.success_reward -= 50  # 高级模式的惩罚
                 elif not self.is_senior:
-                    self.success_reward -= 80  # 非高级模式的惩罚
+                    self.success_reward -= 50  # 非高级模式的惩罚
             self.terminated = True  # 设置为结束状态
 
     def close(self):
@@ -226,9 +232,9 @@ class PPOTrainer:
 if __name__ == "__main__":
     # 创建训练器实例
     trainer = PPOTrainer()
-    total_timesteps = 50
+    total_timesteps = 100
     for _ in tqdm(range(total_timesteps)):
         # 训练模型
-        trainer.train(total_timesteps=100)
+        trainer.train(total_timesteps=1000)
         # 保存模型
     trainer.save_model("D:\Desktop\Directory\Robotic_arm\seedcup2024-client\model.zip")

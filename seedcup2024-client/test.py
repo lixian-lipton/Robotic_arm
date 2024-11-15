@@ -6,7 +6,7 @@ import self_solving
 from robot_arm import Forward_solving
 
 choose_model = 0
-test = 0
+test = 1
 
 def main(algorithm):
     env = Env(is_senior=False,seed=100,gui=test)
@@ -36,7 +36,7 @@ def main(algorithm):
                 # self_gripper_position = Forward_solving(observation, action)
                 # real_gripper_position = env.get_gripper_pos()
                 # print("Self:", self_gripper_position, "Real:", real_gripper_position)
-                sleep(0.02)
+                sleep(0.2)
 
             obs = env.step(action)
             score += env.success_reward
