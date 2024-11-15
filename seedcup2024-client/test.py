@@ -6,10 +6,10 @@ import self_solving
 from robot_arm import Forward_solving
 
 choose_model = 0
-test = 1
+test = 0
 
 def main(algorithm):
-    env = Env(is_senior=False,seed=100,gui=test)
+    env = Env(is_senior=False,seed=114514,gui=test)
     done = False
     num_episodes = 100
     final_score = 0
